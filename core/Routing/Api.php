@@ -1,0 +1,88 @@
+<?php
+
+namespace app\core\Routing;
+
+use app\core\Abstracts\Routing;
+use app\core\Application;
+
+class Api extends Routing {
+    protected static array $routes = [];
+    protected static string $className;
+    protected static string $methodName;
+    protected const StatusCode = 404;
+
+    public static function get(string $path, array $params): void {
+        if (Application::$app->request->isGet()) {
+            self::validateParameters($params);
+            self::$className = $params[0];
+            self::$methodName = $params[1];
+            self::$routes['get'][$path] = $params;
+
+            if (self::validateUrl($path)) {
+                echo "<pre>";
+                print_r($params);
+            }
+        }
+    }
+
+    public static function post(string $path, array $params): void {
+        if (Application::$app->request->isPost()) {
+            self::validateParameters($params);
+            self::$className = $params[0];
+            self::$methodName = $params[1];
+            self::$routes['post'][$path] = $params;
+
+            if (self::validateUrl($path)) {
+                echo "Post submitted";
+                echo "<pre>";
+                print_r($params);
+            }
+        }
+    }
+
+    public static function getRoutes($method): array {
+        return self::$routes[$method];
+    }
+
+    public static function throwException($message): void {
+        http_response_code(self::StatusCode);
+        echo $message;
+        die();
+    }
+
+    public static function validateParameters(array $params): void {
+        if (count($params) !== 2)
+            self::throwException("Parameters must contain exactly 2 argument");
+
+        if (gettype($params[0]) !== 'string' || gettype($params[1]) !== 'string')
+            self::throwException("Arguments must be both string type");
+    }
+
+    public static function validateUrl($requestedPath): bool {
+        $currentUrl = Application::$app->request->getUrl();
+
+        if (strlen($currentUrl) !== 1 && substr($currentUrl, -1) === '/')
+            $currentUrl = rtrim($currentUrl, '/');
+
+        return $currentUrl === $requestedPath;
+    }
+
+    public static function validateUnkownUrl() {
+        $currentUrl = Application::$app->request->getUrl();
+
+        if (
+            Application::$app->request->isGet() &&
+            !array_key_exists($currentUrl, self::getRoutes('get'))
+        ) {
+            self::throwException("Get page Not found");
+        }
+
+        if (
+            Application::$app->request->isPost() &&
+            !array_key_exists($currentUrl, self::getRoutes('post'))
+        ) {
+            self::throwException("Post page Not found");
+        }
+
+    }
+}

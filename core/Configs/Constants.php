@@ -1,6 +1,6 @@
 <?php
 
-namespace app\core\configs;
+namespace app\core\Configs;
 
 class Constants {
     public static function RootPath(string $path = ''): string {
