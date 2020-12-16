@@ -14,8 +14,11 @@ $configs = [
 // Main app controller
 $app = new Application($configs);
 
-Api::get("/", ["classname", 'index']);
-Api::get("/xxx", ["xxxx", 'index']);
+Api::get("/", ["xxxxsss", 'indexssss']);
+
+Api::get("/db", [\app\controllers\DBcontroller::class , 'showDB']);
+Api::get("/db/createtables", [\app\controllers\DBcontroller::class , 'createTables']);
+Api::get("/db/empty", [\app\controllers\DBcontroller::class , 'emptyDB']);
 
 Api::post("/", ["root post", 'index']);
 Api::post("/xxx", ["postx", 'index']);

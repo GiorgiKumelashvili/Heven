@@ -18,10 +18,8 @@ class Api extends Routing {
             self::$methodName = $params[1];
             self::$routes['get'][$path] = $params;
 
-            if (self::validateUrl($path)) {
-                echo "<pre>";
-                print_r($params);
-            }
+            if (self::validateUrl($path))
+                self::execArray();
         }
     }
 
@@ -32,11 +30,18 @@ class Api extends Routing {
             self::$methodName = $params[1];
             self::$routes['post'][$path] = $params;
 
-            if (self::validateUrl($path)) {
-                echo "Post submitted";
-                echo "<pre>";
-                print_r($params);
-            }
+            if (self::validateUrl($path))
+                self::execArray();
+        }
+    }
+
+    private static function execArray(): void {
+        if (method_exists(self::$className, self::$methodName)) {
+            call_user_func([new self::$className(), self::$methodName]);
+        }
+        else {
+            $methodName = self::$methodName;
+            self::throwException("<br>\"{$methodName}()\" method doesn't exists<br>");
         }
     }
 
