@@ -1,27 +1,57 @@
 <?php
+/**
+ * @author Giorgi Kumelashvili
+ * Date : 12/25/2020
+ * Time : 20:55
+ * (Current Time)
+ *
+ * Backend service with php
+ * includes admin panel which is
+ * accessible only by db
+ *
+ *
+ * @noinspection PhpIncludeInspection
+ *
+ */
 
-require_once "../vendor/autoload.php";
+/**
+ * todo
+ */
+
 
 //Namespaces
 use app\core\Application;
+use app\core\Configs\Constants;
+use app\core\Configs\Path;
 use app\core\Routing\Api;
+use Dotenv\Dotenv;
 
-// Configurations later use it from configs folder
+require_once "../vendor/autoload.php";
+require_once Path::location('api/routes/routes'); // Routes
+
+// Dot env load
+$dotenv = Dotenv::createImmutable(Constants::RootPath());
+$dotenv->load();
+
+// Configs later must be transported into core
 $configs = [
-    'db' => 123
+    'db' => [
+        'dbhost' => $_ENV['DB_HOST'],
+        'dbname' => $_ENV['DB_NAME'],
+        'dbusername' => $_ENV['DB_USER'],
+        'dbpassword' => $_ENV['DB_PASS']
+    ]
 ];
 
 // Main app controller
 $app = new Application($configs);
 
-Api::get("/", ["xxxxsss", 'indexssss']);
+// Call routes according to method Type !
+foreach ($routes as $methodType => $vals) {
+    foreach ($routes[$methodType] as $route => $arrr) {
+        call_user_func_array("\app\core\Routing\Api::{$methodType}", [$route, $arrr]);
+    }
+}
 
-Api::get("/db", [\app\controllers\DBcontroller::class , 'showDB']);
-Api::get("/db/createtables", [\app\controllers\DBcontroller::class , 'createTables']);
-Api::get("/db/empty", [\app\controllers\DBcontroller::class , 'emptyDB']);
-
-Api::post("/", ["root post", 'index']);
-Api::post("/xxx", ["postx", 'index']);
-Api::post("/yyy", ["posty", 'index']);
-
+// Validate Urls
 Api::validateUnkownUrl();

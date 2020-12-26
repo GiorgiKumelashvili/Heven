@@ -18,14 +18,20 @@ class Application {
 
     public function __construct(array $params) {
         $this->params = $params;
+
+        // Other important objects
         $this->request = new Request();
+
+        // Db initialization
+        $dbParams = $params['db'];
         $this->db = new DB([
-            'dbhost' => 'localhost',
-            'dbname' => 'foodheven',
-            'dbusername' => 'root',
-            'dbpassword' => ''
+            'dbhost' => $dbParams['dbhost'],
+            'dbname' => $dbParams['dbname'],
+            'dbusername' => $dbParams['dbusername'],
+            'dbpassword' => $dbParams['dbpassword']
         ]);
 
-        self::$app = $this; // For easy access
+        // Self Application initialization [For easy access]
+        self::$app = $this;
     }
 }

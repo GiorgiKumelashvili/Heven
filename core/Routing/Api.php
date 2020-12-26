@@ -12,27 +12,23 @@ class Api extends Routing {
     protected const StatusCode = 404;
 
     public static function get(string $path, array $params): void {
-        if (Application::$app->request->isGet()) {
-            self::validateParameters($params);
-            self::$className = $params[0];
-            self::$methodName = $params[1];
-            self::$routes['get'][$path] = $params;
+        self::validateParameters($params);
+        self::$className = $params[0];
+        self::$methodName = $params[1];
+        self::$routes['get'][$path] = $params;
 
-            if (self::validateUrl($path))
-                self::execArray();
-        }
+        if (self::validateUrl($path) && Application::$app->request->isGet())
+            self::execArray();
     }
 
     public static function post(string $path, array $params): void {
-        if (Application::$app->request->isPost()) {
-            self::validateParameters($params);
-            self::$className = $params[0];
-            self::$methodName = $params[1];
-            self::$routes['post'][$path] = $params;
+        self::validateParameters($params);
+        self::$className = $params[0];
+        self::$methodName = $params[1];
+        self::$routes['post'][$path] = $params;
 
-            if (self::validateUrl($path))
-                self::execArray();
-        }
+        if (self::validateUrl($path) && Application::$app->request->isPost())
+            self::execArray();
     }
 
     private static function execArray(): void {

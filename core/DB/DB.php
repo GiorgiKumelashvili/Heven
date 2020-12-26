@@ -5,10 +5,6 @@ namespace app\core\DB;
 class DB extends Migrations {
     private const keys = ['dbhost', 'dbname', 'dbusername', 'dbpassword'];
 
-    /**
-     * DatabaseCore constructor.
-     * @param array $params
-     */
     public function __construct(array $params) {
         $this->checkParams($params);
         parent::__construct($params['dbhost'], $params['dbname'], $params['dbusername'], $params['dbpassword']);

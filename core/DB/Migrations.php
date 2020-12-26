@@ -28,11 +28,11 @@ class Migrations extends DatabaseCore {
         $this->connection()->exec("
             CREATE TABLE users (
                 `id` INT(20) NOT NULL AUTO_INCREMENT,
-                `name` VARCHAR(60) NOT NULL,
-                `email` VARCHAR(60) NOT NULL UNIQUE,
-                `password` VARCHAR(60) NOT NULL,
+                `username` VARCHAR(30) NOT NULL,
+                `email` VARCHAR(30) NOT NULL UNIQUE,
+                `password` VARCHAR(255) NOT NULL,
                 `active` TINYINT(4) NOT NULL,
-                `created_on` DATE NOT NULL,
+                `created_on` TIMESTAMP DEFAULT current_timestamp NOT NULL,
                 PRIMARY KEY (id)
             );
         ");
