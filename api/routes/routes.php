@@ -1,6 +1,7 @@
 <?php
 
 use app\controllers\auth\Authentication;
+use app\controllers\auth\TokenController;
 use app\controllers\Temp;
 
 $routes = [
@@ -11,9 +12,10 @@ $routes = [
         // Authentication
         "/auth"=> [Authentication::class, 'index'],
 
-        // random routes
-        "/" =>["root post", 'index'],
-        "/xxx" => ["postx", 'index'],
-        "/yyy" => ["posty", 'index'],
+        // Token refresh gets {"data": "refreshToken"}
+        "/refreshtoken"=> [TokenController::class, 'refreshAccessToken'],
+
+        // Route for test
+        "/1" => [Temp::class, 'index']
     ]
 ];

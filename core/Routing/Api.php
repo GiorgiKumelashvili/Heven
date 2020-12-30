@@ -2,6 +2,7 @@
 
 namespace app\core\Routing;
 
+use app\controllers\auth\TokenController;
 use app\core\Abstracts\Routing;
 use app\core\Application;
 
@@ -27,6 +28,16 @@ class Api extends Routing {
         self::$methodName = $params[1];
         self::$routes['post'][$path] = $params;
 
+        // validate post with token
+        if (Application::$app->request->isPost()) {
+            $arr = explode('/', $_SERVER['REQUEST_URI']);
+            $currentRoute = $arr[array_key_last($arr)];
+
+            if ($currentRoute !== 'auth' && $currentRoute !== 'refreshtoken') {
+                TokenController::validateAccessToken();
+            }
+        }
+
         if (self::validateUrl($path) && Application::$app->request->isPost())
             self::execArray();
     }
@@ -47,8 +58,7 @@ class Api extends Routing {
 
     public static function throwException($message): void {
         http_response_code(self::StatusCode);
-        echo $message;
-        die();
+        Application::$app->response->sendResponse('error', $message);
     }
 
     public static function validateParameters(array $params): void {
@@ -71,6 +81,7 @@ class Api extends Routing {
     public static function validateUnkownUrl() {
         $currentUrl = Application::$app->request->getUrl();
 
+        // Error Pgae not found validation
         if (
             Application::$app->request->isGet() &&
             !array_key_exists($currentUrl, self::getRoutes('get'))
@@ -84,6 +95,5 @@ class Api extends Routing {
         ) {
             self::throwException("Post page Not found");
         }
-
     }
 }

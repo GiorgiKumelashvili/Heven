@@ -12,5 +12,8 @@
     <h1>Welcome</h1>
     <h3>Locations</h3>
     <hr>
+    <form action="db" method="get">
+        <input type="submit" value="Go to DB">
+    </form>
 </body>
 </html>

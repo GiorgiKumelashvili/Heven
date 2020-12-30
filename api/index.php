@@ -14,26 +14,28 @@
  *
  */
 
-/**
- * todo
- */
-
-
-//Namespaces
+// Namespaces
 use app\core\Application;
 use app\core\Configs\Constants;
+use app\core\Configs\Header;
 use app\core\Configs\Path;
 use app\core\Routing\Api;
 use Dotenv\Dotenv;
 
-require_once "../vendor/autoload.php";
-require_once Path::location('api/routes/routes'); // Routes
+// Requires php files
+require_once "../vendor/autoload.php";                  // Auto loader
+require_once Path::location('api/routes/routes');   // Routes
 
 // Dot env load
-$dotenv = Dotenv::createImmutable(Constants::RootPath());
-$dotenv->load();
+$dotenv = Dotenv::createImmutable(Constants::RootPath())->load();
 
-// Configs later must be transported into core
+// Set Headers
+Header::SetHeaders([
+    "Access-Control-Allow-Origin: {$_ENV['FRONT_ACCESS_LOCATION']}",
+    "Access-Control-Allow-Headers: *"
+]);
+
+// Configs
 $configs = [
     'db' => [
         'dbhost' => $_ENV['DB_HOST'],
@@ -43,10 +45,10 @@ $configs = [
     ]
 ];
 
-// Main app controller
+// Initialize main app controller
 $app = new Application($configs);
 
-// Call routes according to method Type !
+// Call routes according to method type
 foreach ($routes as $methodType => $vals) {
     foreach ($routes[$methodType] as $route => $arrr) {
         call_user_func_array("\app\core\Routing\Api::{$methodType}", [$route, $arrr]);

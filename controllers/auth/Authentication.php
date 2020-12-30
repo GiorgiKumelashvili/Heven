@@ -9,25 +9,22 @@
 namespace app\controllers\auth;
 
 use app\core\Application;
-use app\core\Routing\Api;
 use PDO;
 
 class Authentication {
-    public array $request;
-    public string $response;
+    private array $request;
+    private array $data = [];
+    private string $message = '';
 
     public function index() {
         // Set JSON header
         header("Content-Type: application/json");
 
-        // Get post dat
+        // Get post data
         $this->request = $this->getPostData();
 
         // Validation request
         $this->validatePostData();
-
-        // Main validation
-        $this->validateData();
 
         // Final send
         $this->sendPostData();
@@ -83,10 +80,12 @@ class Authentication {
             }
         }
 
-        if ($message) self::throwException($message);
-    }
+        // If error exists
+        if ($message) {
+            $this->sendErrorData($message);
+        }
 
-    private function validateData() {
+        // Go to register or login
         if ($this->request['type'] === 'register') {
             $this->register($this->request['data']);
         }
@@ -99,68 +98,73 @@ class Authentication {
         $username = filter_var($data['username'], FILTER_SANITIZE_STRING);
         $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
         $password = $data['password'];
-
         $db = Application::$app->db->connection();
 
         // Check user existence [email]
-        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        $userExists = $stmt->fetchColumn();
+        $userData = $this->returnUserData($email);
 
         // Inserting user credentials into DB
-        if (!$userExists) {
+        if (!$userData) {
             // Inserting
             $stmt = $db->prepare("
                 INSERT INTO users
-                    (username, email, password)
+                    (username, email, password, identifier)
                 VALUES
-                    (:username, :email, :pwd)
+                    (:username, :email, :pwd, :identifier)
             ");
 
             $stmt->execute([
                 ':username' => $username,
                 ':email' => $email,
-                ':pwd' => password_hash($password, PASSWORD_DEFAULT)
+                ':pwd' => password_hash($password, PASSWORD_DEFAULT),
+                ':identifier' => bin2hex(openssl_random_pseudo_bytes(50))
             ]);
 
-            $this->response = "User succesfuly registered";
+            $this->message = "User succesfuly registered";
         }
         else {
-            self::throwException("Username already exists");
+            $this->sendErrorData("Username already exists");
         }
     }
 
     private function login(array $data): void {
         $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
-        $password = $data['password'];
 
+        // Check user existence [email]
+        $userData = $this->returnUserData($email);
+
+        // Verifying user credentials
+        if ($userData && password_verify($data['password'], $userData['password'])) {
+            $this->message = "User authentications successs";
+            $this->data['accessToken'] = TokenController::generateToken($userData, 'access');
+            $this->data['refreshToken'] = TokenController::generateToken($userData, 'refresh');
+            $this->data['identifier'] = $userData['identifier'];
+        }
+        else {
+            $this->sendErrorData("Incorrect email or password");
+        }
+    }
+
+    private function returnUserData(string $email) {
+        $userEmail = filter_var($email, FILTER_SANITIZE_EMAIL);
         $db = Application::$app->db->connection();
 
         // Check user existence [email]
         $stmt = $db->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Verifying user credentials
-        if ($data && password_verify($password, $data['password'])) {
-            $this->response = "User authentications successs";
-        }
-        else {
-            self::throwException("Incorrect email or password");
-        }
+        $stmt->execute([':email' => $userEmail]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     private function sendPostData(): void {
-        echo json_encode([
-            "statuscode" => 1,
-            "message" => $this->response
-        ]);
+        $response = [];
+
+        if ($this->message) $response['message'] = $this->message;
+        if ($this->data) $response = array_merge($response, $this->data);
+
+        Application::$app->response->sendResponse('success', $response);
     }
 
-    private static function throwException(string $message): void {
-        Api::throwException(json_encode([
-            "statuscode" => 0,
-            "error" => $message
-        ]));
+    private function sendErrorData(string $message): void {
+        Application::$app->response->sendResponse('error', $message);
     }
 }
