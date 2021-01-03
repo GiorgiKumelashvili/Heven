@@ -10,8 +10,8 @@ use Firebase\JWT\JWT;
 
 class TokenController {
     private const ALGORITHM = 'HS256';
-    private const ACCESS_EXPIRE = 5;
-    private const REFESH_EXPIRE = 10;
+    private const ACCESS_EXPIRE = 60 * 10; // 5 min --- refresh
+    private const REFESH_EXPIRE = 60 * 60 * 24 * 7; // 7 day/ 1 week --- refresh
 
     /**
      * @param array $data

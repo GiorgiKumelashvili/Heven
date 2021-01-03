@@ -6,7 +6,7 @@ class Temp {
     public function index() {
         header('Content-Type: application/json');
         $arr= [
-            'x' => 123
+            'message' => 'hello api user this is root repository'
         ];
         echo json_encode($arr);
     }

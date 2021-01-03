@@ -9,6 +9,7 @@
 namespace app\controllers\auth;
 
 use app\core\Application;
+use Exception;
 use PDO;
 
 class Authentication {
@@ -113,12 +114,18 @@ class Authentication {
                     (:username, :email, :pwd, :identifier)
             ");
 
-            $stmt->execute([
-                ':username' => $username,
-                ':email' => $email,
-                ':pwd' => password_hash($password, PASSWORD_DEFAULT),
-                ':identifier' => bin2hex(openssl_random_pseudo_bytes(50))
-            ]);
+            try {
+                $stmt->execute([
+                    ':username' => $username,
+                    ':email' => $email,
+                    ':pwd' => password_hash($password, PASSWORD_DEFAULT),
+                    ':identifier' => bin2hex(openssl_random_pseudo_bytes(50))
+                ]);
+            }
+            catch (Exception $e) {
+                $this->sendErrorData($e->getMessage());
+            }
+
 
             $this->message = "User succesfuly registered";
         }
