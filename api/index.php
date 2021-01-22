@@ -49,8 +49,8 @@ $configs = [
 $app = new Application($configs);
 
 // Call routes according to method type
-foreach ($routes as $methodType => $vals) {
-    foreach ($routes[$methodType] as $route => $arrr) {
+foreach ($ApiRoutes as $methodType => $vals) {
+    foreach ($ApiRoutes[$methodType] as $route => $arrr) {
         call_user_func_array("\app\core\Routing\Api::{$methodType}", [$route, $arrr]);
     }
 }

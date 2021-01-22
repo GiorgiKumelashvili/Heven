@@ -12,6 +12,11 @@ class Request {
         return $currentUrl;
     }
 
+    public function getPostData(): array {
+        $req = stream_get_contents(fopen('php://input', 'r'));
+        return json_decode($req, true) ?? [];
+    }
+
     public function method(): string {
         return strtolower($_SERVER['REQUEST_METHOD']);
     }

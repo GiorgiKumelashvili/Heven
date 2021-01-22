@@ -28,7 +28,7 @@ class Migrations extends DatabaseCore {
         $this->connection()->exec("
             CREATE TABLE users (
                 `id` INT(20) NOT NULL AUTO_INCREMENT,
-                `identifier` INT(100) NOT NULL,
+                `identifier` VARCHAR(100) NOT NULL,
                 `username` VARCHAR(30) NOT NULL,
                 `email` VARCHAR(30) NOT NULL UNIQUE,
                 `password` VARCHAR(255) NOT NULL,

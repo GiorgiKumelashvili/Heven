@@ -4,12 +4,30 @@
  * @noinspection
  *      SqlNoDataSourceInspection
  *      PhpUnreachableStatementInspection
+ *
+ * @example login:
+ *
+ *      "type": "login",
+ *      "data": {
+ *          "email": "g@exam.com",
+ *          "password": "asdosdjo0sjdiopjsdj123123"
+ *      }
+ *
+ * @example register
+ *
+ *      "type": "register",
+ *      "data": {
+ *          "username": "luka",
+ *          "email": "luka@exam.com",
+ *          "password": "luk32"
+ *      }
  */
 
 namespace app\controllers\auth;
 
 use app\core\Application;
 use Exception;
+use Firebase\JWT\JWT;
 use PDO;
 
 class Authentication {
@@ -95,6 +113,12 @@ class Authentication {
         }
     }
 
+    /**
+     * @param array $data
+     * @return void
+     *
+     * Main register method !!!
+     */
     private function register(array $data): void {
         $username = filter_var($data['username'], FILTER_SANITIZE_STRING);
         $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
@@ -134,6 +158,12 @@ class Authentication {
         }
     }
 
+    /**
+     * @param array $data
+     * @return void
+     *
+     * Main login method !!!
+     */
     private function login(array $data): void {
         $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
 
@@ -167,11 +197,45 @@ class Authentication {
 
         if ($this->message) $response['message'] = $this->message;
         if ($this->data) $response = array_merge($response, $this->data);
-
         Application::$app->response->sendResponse('success', $response);
     }
 
     private function sendErrorData(string $message): void {
         Application::$app->response->sendResponse('error', $message);
+    }
+
+    private function returnUserDataByIdentifier(array $postData): bool {
+        try {
+            $accessKey = $_ENV['REFRESH_TOKEN_SECRET'];
+            $refreshToken = $postData['refreshToken'];
+            $payload = JWT::decode($refreshToken, $accessKey, ['HS256']);
+            $payload = json_decode(json_encode($payload), true);
+            $identifier = $payload['identifier'];
+            $db = Application::$app->db->connection();
+
+
+            $stmt = $db->prepare("SELECT identifier FROM users WHERE identifier = :identifier");
+            $stmt->execute([':identifier' => $identifier]);
+            $identifierArr = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            return $identifierArr[0] === $identifier;
+        }
+        catch (Exception $e) {
+            $this->sendErrorData('Something went wrong with token');
+        }
+    }
+
+    public function isUserAuthenticated(): void {
+        $postData = Application::$app->request->getPostData();
+
+        if (count($postData) === 0)
+            $this->sendErrorData('Empty object');
+
+        $doesUserExists = $this->returnUserDataByIdentifier($postData);
+        $condition = $doesUserExists ? 'success' : 'error';
+
+        Application::$app->response->sendResponse($condition, [
+            'UserExists' => $doesUserExists
+        ]);
     }
 }

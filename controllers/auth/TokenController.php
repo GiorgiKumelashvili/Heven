@@ -14,11 +14,11 @@ class TokenController {
     private const REFESH_EXPIRE = 60 * 60 * 24 * 7; // 7 day/ 1 week --- refresh
 
     /**
-     * @param array $data
+     * @param array $userData
      * @param string $whichToken --> access, refresh
      * @return string
      */
-    public static function generateToken(array $data, string $whichToken) {
+    public static function generateToken(array $userData, string $whichToken) {
         $issuer = $_ENV['FRONT_ACCESS_LOCATION'];
         $accessKey = '';
         $exp = '';
@@ -32,9 +32,7 @@ class TokenController {
             $exp = self::REFESH_EXPIRE;
         }
         else {
-            Application::$app
-                ->response
-                ->sendResponse('error', "Incorrect name for token");
+            Application::$app->response->sendResponse('error', "Incorrect name for token");
         }
 
         $payload = [
@@ -43,7 +41,7 @@ class TokenController {
             'exp' => time() + $exp, // expires at
 
             // identify user
-            'identifier' => $data['identifier']
+            'identifier' => $userData['identifier']
         ];
 
         return JWT::encode($payload, $accessKey, self::ALGORITHM);
@@ -64,6 +62,7 @@ class TokenController {
         }
     }
 
+    // Token refresh gets {"data": "refreshToken"}
     public static function refreshAccessToken(): void {
         try {
             $token = self::getBearerToken();
@@ -124,6 +123,7 @@ class TokenController {
             $requestHeaders = apache_request_headers();
             // Server-side fix for bug in old Android versions (a nice side-effect of this fix means we don't care about capitalization for Authorization)
             $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
+
             //print_r($requestHeaders);
             if (isset($requestHeaders['Authorization'])) {
                 $headers = trim($requestHeaders['Authorization']);
